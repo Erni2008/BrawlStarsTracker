@@ -1,0 +1,21 @@
+{
+  "name": "Brawl Trophy Tracker",
+  "short_name": "Brawl Tracker",
+  "description": "Tokenless Brawl Stars trophy tracker for iPhone and Android.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b111d",
+  "theme_color": "#0b111d",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "utilities"],
+  "lang": "ru"
+}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b111d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Brawl Tracker" />
+    <meta name="description" content="Tokenless Brawl Stars trophy tracker PWA with local snapshots, maps, brawlers, and RU/EN interface." />
+    <title>Brawl Trophy Tracker PWA</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="icon" href="./icons/icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="eyebrow">Brawl Stars companion</p>
+          <h1 data-i18n="appTitle">Трекер кубков</h1>
+          <p data-i18n="appSubtitle">Без токена: снимки профиля, бравлеры, карты и дневная динамика прямо на iPhone.</p>
+        </div>
+        <div class="hero-actions">
+          <button id="languageButton" class="icon-button" type="button">EN</button>
+          <button id="installButton" class="install-button hidden" type="button" data-i18n="install">Установить</button>
+        </div>
+      </header>
+
+      <section class="connect-card">
+        <form id="setupForm" class="setup-form">
+          <label>
+            <span data-i18n="playerTag">Player tag</span>
+            <input id="playerTagInput" placeholder="#2VCURPQR9" autocomplete="off" inputmode="text" />
+          </label>
+          <label>
+            <span data-i18n="syncInterval">Интервал, мин</span>
+            <input id="intervalInput" type="number" min="2" max="120" value="10" />
+          </label>
+          <button id="syncButton" class="primary-button" type="submit" data-i18n="syncNow">Обновить</button>
+        </form>
+        <div class="status-line">
+          <span id="statusDot" class="status-dot"></span>
+          <span id="statusText" data-i18n="statusReady">Введи тег и сделай первый снимок.</span>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" data-tab="dashboard" type="button" data-i18n="tabDashboard">Главная</button>
+        <button class="tab" data-tab="brawlers" type="button" data-i18n="tabBrawlers">Бравлеры</button>
+        <button class="tab" data-tab="maps" type="button" data-i18n="tabMaps">Карты</button>
+        <button class="tab" data-tab="history" type="button" data-i18n="tabHistory">История</button>
+      </nav>
+
+      <section id="dashboardTab" class="tab-panel active">
+        <div class="metric-grid">
+          <article class="metric-card accent-green">
+            <span data-i18n="today">Сегодня</span>
+            <strong id="todayDelta">0</strong>
+            <small data-i18n="todayHint">по снимкам профиля</small>
+          </article>
+          <article class="metric-card accent-blue">
+            <span data-i18n="currentTrophies">Кубки</span>
+            <strong id="currentTrophies">-</strong>
+            <small id="playerName">-</small>
+          </article>
+          <article class="metric-card accent-yellow">
+            <span data-i18n="wins">Победы</span>
+            <strong id="winsTotal">0</strong>
+            <small id="winsSplit">3v3 0 · solo 0 · duo 0</small>
+          </article>
+          <article class="metric-card accent-red">
+            <span data-i18n="losses">Поражения</span>
+            <strong id="lossEstimate">~0</strong>
+            <small data-i18n="lossesHint">оценка по минусу кубков</small>
+          </article>
+        </div>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="quickCoach">Быстрый коуч</h2>
+              <p data-i18n="quickCoachHint">Что стоит сделать дальше по последним данным.</p>
+            </div>
+            <span id="lastSync">-</span>
+          </div>
+          <div id="coachList" class="coach-list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="recentChanges">Последние изменения</h2>
+              <p data-i18n="recentChangesHint">Сравнение двух последних снимков.</p>
+            </div>
+          </div>
+          <div id="recentChanges" class="list"></div>
+        </article>
+      </section>
+
+      <section id="brawlersTab" class="tab-panel">
+        <article class="panel">
+          <div class="panel-head sticky-head">
+            <div>
+              <h2 data-i18n="brawlersTitle">Бравлеры</h2>
+              <p data-i18n="brawlersHint">Кубки, сила, ранг и прогресс каждого персонажа.</p>
+            </div>
+            <select id="brawlerSort" aria-label="Sort brawlers">
+              <option value="trophies" data-i18n="sortTrophies">Кубки</option>
+              <option value="power" data-i18n="sortPower">Сила</option>
+              <option value="rank" data-i18n="sortRank">Ранг</option>
+              <option value="name" data-i18n="sortName">Имя</option>
+            </select>
+          </div>
+          <div id="brawlerList" class="brawler-list"></div>
+        </article>
+      </section>
+
+      <section id="mapsTab" class="tab-panel">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="currentMaps">Сейчас в игре</h2>
+              <p data-i18n="currentMapsHint">Активные карты и режимы из BrawlAPI.</p>
+            </div>
+          </div>
+          <div id="currentMaps" class="map-grid"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="upcomingMaps">Следующие карты</h2>
+              <p data-i18n="upcomingMapsHint">Отдельный список будущей ротации.</p>
+            </div>
+          </div>
+          <div id="upcomingMaps" class="map-grid"></div>
+        </article>
+      </section>
+
+      <section id="historyTab" class="tab-panel">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="historyTitle">История кубков</h2>
+              <p data-i18n="historyHint">Каждый столбец показывает дельту за день.</p>
+            </div>
+          </div>
+          <div id="historyChart" class="chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="snapshotsTitle">Снимки</h2>
+              <p data-i18n="snapshotsHint">Данные хранятся локально в браузере.</p>
+            </div>
+            <button id="clearButton" class="danger-button" type="button" data-i18n="clear">Очистить</button>
+          </div>
+          <div id="snapshotList" class="list"></div>
+        </article>
+      </section>
+    </main>
+
+    <dialog id="mapDialog" class="map-dialog">
+      <button id="closeMapDialog" class="dialog-close" type="button">×</button>
+      <img id="mapPreview" alt="" />
+      <div class="dialog-info">
+        <strong id="mapDialogTitle"></strong>
+        <span id="mapDialogMode"></span>
+      </div>
+    </dialog>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
