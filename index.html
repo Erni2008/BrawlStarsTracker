@@ -16,61 +16,63 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow" data-i18n="eyebrow">Brawl Stars companion</p>
-          <h1 data-i18n="appTitle">Трекер кубков</h1>
-          <p data-i18n="appSubtitle">Без токена: снимки профиля, бравлеры, карты и дневная динамика прямо на iPhone.</p>
-        </div>
-        <div class="hero-actions">
-          <button id="languageButton" class="icon-button" type="button">EN</button>
-          <button id="installButton" class="install-button hidden" type="button" data-i18n="install">Установить</button>
-        </div>
+      <header class="native-nav">
+        <button id="languageButton" class="nav-button" type="button">EN</button>
+        <strong>Brawl Tracker</strong>
+        <button id="clearButton" class="nav-button danger-nav" type="button" aria-label="Clear">⌫</button>
       </header>
 
-      <section class="connect-card">
+      <section class="hero-card">
+        <div class="account-row">
+          <div class="account-mark" id="accountMark">BS</div>
+          <div class="account-copy">
+            <strong id="heroPlayerName">Player</strong>
+            <span id="heroPlayerTag">#R2UCLQVRU</span>
+            <div class="status-line compact">
+              <span id="statusDot" class="status-dot"></span>
+              <span id="statusText" data-i18n="statusReady">Введи тег и сделай первый снимок.</span>
+            </div>
+          </div>
+          <div class="hero-trophies">
+            <strong id="heroTrophies">-</strong>
+            <span data-i18n="trophies">кубков</span>
+          </div>
+        </div>
         <form id="setupForm" class="setup-form">
-          <label>
-            <span data-i18n="playerTag">Player tag</span>
+          <label class="tag-field">
+            <span>#</span>
             <input id="playerTagInput" placeholder="#2VCURPQR9" autocomplete="off" inputmode="text" />
           </label>
-          <label>
+          <label class="interval-field">
             <span data-i18n="syncInterval">Интервал, мин</span>
             <input id="intervalInput" type="number" min="2" max="120" value="10" />
           </label>
-          <button id="syncButton" class="primary-button" type="submit" data-i18n="syncNow">Обновить</button>
+          <button id="syncButton" class="sync-button" type="submit" aria-label="Sync">↻</button>
         </form>
-        <div class="status-line">
-          <span id="statusDot" class="status-dot"></span>
-          <span id="statusText" data-i18n="statusReady">Введи тег и сделай первый снимок.</span>
-        </div>
       </section>
-
-      <nav class="tabs" aria-label="Sections">
-        <button class="tab active" data-tab="dashboard" type="button" data-i18n="tabDashboard">Главная</button>
-        <button class="tab" data-tab="brawlers" type="button" data-i18n="tabBrawlers">Бравлеры</button>
-        <button class="tab" data-tab="maps" type="button" data-i18n="tabMaps">Карты</button>
-        <button class="tab" data-tab="history" type="button" data-i18n="tabHistory">История</button>
-      </nav>
 
       <section id="dashboardTab" class="tab-panel active">
         <div class="metric-grid">
           <article class="metric-card accent-green">
+            <i class="metric-icon">⌁</i>
             <span data-i18n="today">Сегодня</span>
             <strong id="todayDelta">0</strong>
             <small data-i18n="todayHint">по снимкам профиля</small>
           </article>
           <article class="metric-card accent-blue">
+            <i class="metric-icon">#</i>
             <span data-i18n="currentTrophies">Кубки</span>
             <strong id="currentTrophies">-</strong>
             <small id="playerName">-</small>
           </article>
           <article class="metric-card accent-yellow">
+            <i class="metric-icon">✓</i>
             <span data-i18n="wins">Победы</span>
             <strong id="winsTotal">0</strong>
             <small id="winsSplit">3v3 0 · solo 0 · duo 0</small>
           </article>
           <article class="metric-card accent-red">
+            <i class="metric-icon">×</i>
             <span data-i18n="losses">Поражения</span>
             <strong id="lossEstimate">~0</strong>
             <small data-i18n="lossesHint">оценка по минусу кубков</small>
@@ -78,14 +80,40 @@
         </div>
 
         <article class="panel">
+          <div class="section-title">
+            <i>◎</i>
+            <strong data-i18n="goalTitle">Цель</strong>
+            <span data-i18n="goalDetail">личный план</span>
+          </div>
+          <p class="info-text" data-i18n="goalHint">Поставь цель по кубкам. Приложение покажет прогресс, остаток и примерный темп.</p>
+          <div class="goal-input-row">
+            <label class="goal-input">
+              <span>⚑</span>
+              <input id="goalInput" type="number" inputmode="numeric" placeholder="70000" />
+            </label>
+            <button id="suggestGoalButton" class="sync-button" type="button">✦</button>
+          </div>
+          <div id="goalPanel" class="goal-panel"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-title">
+            <i>□</i>
+            <strong data-i18n="calendarTitle">Календарь</strong>
+            <span data-i18n="calendarDetail">последние дни</span>
+          </div>
+          <p class="info-text" data-i18n="calendarHint">Каждая клетка - день. Зелёный день в плюс, красный день в минус.</p>
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </article>
+
+        <article class="panel">
           <div class="panel-head">
             <div>
-              <h2 data-i18n="quickCoach">Быстрый коуч</h2>
-              <p data-i18n="quickCoachHint">Что стоит сделать дальше по последним данным.</p>
+              <h2 data-i18n="historyTitle">История кубков</h2>
+              <p data-i18n="historyHint">Каждый столбец показывает дельту за день.</p>
             </div>
-            <span id="lastSync">-</span>
           </div>
-          <div id="coachList" class="coach-list"></div>
+          <div id="homeHistoryChart" class="chart compact-chart"></div>
         </article>
 
         <article class="panel">
@@ -96,6 +124,19 @@
             </div>
           </div>
           <div id="recentChanges" class="list"></div>
+        </article>
+      </section>
+
+      <section id="coachTab" class="tab-panel">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 data-i18n="quickCoach">Coach Feed</h2>
+              <p data-i18n="quickCoachHint">Что стоит сделать дальше по последним данным.</p>
+            </div>
+            <span id="lastSync">-</span>
+          </div>
+          <div id="coachList" class="coach-list"></div>
         </article>
       </section>
 
@@ -150,17 +191,50 @@
           <div id="historyChart" class="chart"></div>
         </article>
 
+        <details class="collapse-card" open>
+          <summary>
+            <span class="summary-icon">◉</span>
+            <strong data-i18n="profile">Профиль</strong>
+            <b data-i18n="collapse">Свернуть</b>
+          </summary>
+          <div id="profileStats" class="profile-grid"></div>
+        </details>
+
+        <details class="collapse-card">
+          <summary>
+            <span class="summary-icon">▤</span>
+            <strong data-i18n="snapshotsTitle">Снимки</strong>
+            <b data-i18n="open">Открыть</b>
+          </summary>
+          <p class="info-text" data-i18n="snapshotsHint">Данные хранятся локально в браузере.</p>
+          <div id="snapshotList" class="list"></div>
+        </details>
+      </section>
+
+      <section id="settingsTab" class="tab-panel">
         <article class="panel">
           <div class="panel-head">
             <div>
-              <h2 data-i18n="snapshotsTitle">Снимки</h2>
-              <p data-i18n="snapshotsHint">Данные хранятся локально в браузере.</p>
+              <h2 data-i18n="settingsTitle">Настройки</h2>
+              <p data-i18n="settingsHint">PWA-версия хранит историю локально на этом устройстве.</p>
             </div>
-            <button id="clearButton" class="danger-button" type="button" data-i18n="clear">Очистить</button>
           </div>
-          <div id="snapshotList" class="list"></div>
+          <div class="settings-list">
+            <button id="installButton" class="settings-action hidden" type="button" data-i18n="install">Установить</button>
+            <button class="settings-action" type="button" id="manualInstallButton" data-i18n="installHint">На iPhone: Safari -> Поделиться -> На экран «Домой».</button>
+            <button class="settings-action danger" type="button" id="settingsClearButton" data-i18n="clear">Очистить</button>
+          </div>
         </article>
       </section>
+
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" data-tab="dashboard" type="button"><span>⌂</span><b data-i18n="tabDashboard">Главная</b></button>
+        <button class="tab" data-tab="coach" type="button"><span>✦</span><b>Coach</b></button>
+        <button class="tab" data-tab="maps" type="button"><span>▱</span><b data-i18n="tabMaps">Карты</b></button>
+        <button class="tab" data-tab="brawlers" type="button"><span>★</span><b data-i18n="tabBrawlers">Бравлеры</b></button>
+        <button class="tab" data-tab="history" type="button"><span>⌁</span><b data-i18n="tabHistory">История</b></button>
+        <button class="tab" data-tab="settings" type="button"><span>⚙</span><b data-i18n="tabSettings">Настройки</b></button>
+      </nav>
     </main>
 
     <dialog id="mapDialog" class="map-dialog">

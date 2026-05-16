@@ -16,6 +16,7 @@ const i18n = {
     tabBrawlers: "Бравлеры",
     tabMaps: "Карты",
     tabHistory: "История",
+    tabSettings: "Настройки",
     today: "Сегодня",
     todayHint: "по снимкам профиля",
     currentTrophies: "Кубки",
@@ -63,7 +64,24 @@ const i18n = {
     soon: "скоро",
     total: "всего",
     profile: "Профиль",
-    clearConfirm: "Очистить локальную историю снимков?"
+    clearConfirm: "Очистить локальную историю снимков?",
+    settingsTitle: "Настройки",
+    settingsHint: "PWA-версия хранит историю локально на этом устройстве.",
+    goalTitle: "Цель",
+    goalDetail: "личный план",
+    goalHint: "Поставь цель по кубкам. Приложение покажет прогресс, остаток и примерный темп.",
+    calendarTitle: "Календарь",
+    calendarDetail: "последние дни",
+    calendarHint: "Каждая клетка - день. Зелёный день в плюс, красный день в минус.",
+    remaining: "осталось",
+    progress: "прогресс",
+    pace: "темп",
+    open: "Открыть",
+    collapse: "Свернуть",
+    level: "уровень",
+    ranked: "ranked",
+    club: "клуб",
+    winStreak: "лучший streak"
   },
   en: {
     eyebrow: "Brawl Stars companion",
@@ -78,6 +96,7 @@ const i18n = {
     tabBrawlers: "Brawlers",
     tabMaps: "Maps",
     tabHistory: "History",
+    tabSettings: "Settings",
     today: "Today",
     todayHint: "from profile snapshots",
     currentTrophies: "Trophies",
@@ -125,7 +144,24 @@ const i18n = {
     soon: "soon",
     total: "total",
     profile: "Profile",
-    clearConfirm: "Clear local snapshot history?"
+    clearConfirm: "Clear local snapshot history?",
+    settingsTitle: "Settings",
+    settingsHint: "The PWA stores history locally on this device.",
+    goalTitle: "Goal",
+    goalDetail: "personal plan",
+    goalHint: "Set a trophy goal. The app shows progress, remaining trophies, and estimated pace.",
+    calendarTitle: "Calendar",
+    calendarDetail: "recent days",
+    calendarHint: "Each cell is a day. Green is positive, red is negative.",
+    remaining: "remaining",
+    progress: "progress",
+    pace: "pace",
+    open: "Open",
+    collapse: "Collapse",
+    level: "level",
+    ranked: "ranked",
+    club: "club",
+    winStreak: "best streak"
   }
 };
 
@@ -158,8 +194,17 @@ const els = {
   tabs: document.querySelectorAll(".tab"),
   panels: document.querySelectorAll(".tab-panel"),
   todayDelta: document.querySelector("#todayDelta"),
+  goalInput: document.querySelector("#goalInput"),
+  suggestGoalButton: document.querySelector("#suggestGoalButton"),
+  goalPanel: document.querySelector("#goalPanel"),
+  calendarGrid: document.querySelector("#calendarGrid"),
+  profileStats: document.querySelector("#profileStats"),
   currentTrophies: document.querySelector("#currentTrophies"),
   playerName: document.querySelector("#playerName"),
+  accountMark: document.querySelector("#accountMark"),
+  heroPlayerName: document.querySelector("#heroPlayerName"),
+  heroPlayerTag: document.querySelector("#heroPlayerTag"),
+  heroTrophies: document.querySelector("#heroTrophies"),
   winsTotal: document.querySelector("#winsTotal"),
   winsSplit: document.querySelector("#winsSplit"),
   lossEstimate: document.querySelector("#lossEstimate"),
@@ -171,8 +216,11 @@ const els = {
   currentMaps: document.querySelector("#currentMaps"),
   upcomingMaps: document.querySelector("#upcomingMaps"),
   historyChart: document.querySelector("#historyChart"),
+  homeHistoryChart: document.querySelector("#homeHistoryChart"),
   snapshotList: document.querySelector("#snapshotList"),
   clearButton: document.querySelector("#clearButton"),
+  settingsClearButton: document.querySelector("#settingsClearButton"),
+  manualInstallButton: document.querySelector("#manualInstallButton"),
   mapDialog: document.querySelector("#mapDialog"),
   closeMapDialog: document.querySelector("#closeMapDialog"),
   mapPreview: document.querySelector("#mapPreview"),
@@ -190,11 +238,12 @@ function loadState() {
       language: saved.language || "ru",
       playerTag: saved.playerTag || "",
       syncIntervalMinutes: saved.syncIntervalMinutes || 10,
+      trophyGoal: saved.trophyGoal || null,
       snapshots: Array.isArray(saved.snapshots) ? saved.snapshots : [],
       maps: saved.maps || { current: [], upcoming: [], fetchedAt: null }
     };
   } catch {
-    return { language: "ru", playerTag: "", syncIntervalMinutes: 10, snapshots: [], maps: { current: [], upcoming: [], fetchedAt: null } };
+    return { language: "ru", playerTag: "", syncIntervalMinutes: 10, trophyGoal: null, snapshots: [], maps: { current: [], upcoming: [], fetchedAt: null } };
   }
 }
 
@@ -302,6 +351,7 @@ function render() {
   translate();
   els.playerTagInput.value = state.playerTag;
   els.intervalInput.value = state.syncIntervalMinutes;
+  els.goalInput.value = state.trophyGoal || "";
 
   const latest = latestSnapshot();
   const baseline = todayBaseline();
@@ -315,6 +365,10 @@ function render() {
   els.todayDelta.className = deltaClass(todayDelta);
   els.currentTrophies.textContent = latest ? formatNumber(latest.trophies) : "-";
   els.playerName.textContent = latest ? `${latest.name} · ${latest.tag}` : t("noSnapshots");
+  els.accountMark.textContent = latest?.name ? latest.name.slice(0, 2).toUpperCase() : "BS";
+  els.heroPlayerName.textContent = latest?.name || "Player";
+  els.heroPlayerTag.textContent = latest?.tag || state.playerTag || "#R2UCLQVRU";
+  els.heroTrophies.textContent = latest ? formatNumber(latest.trophies) : "-";
 
   const wins = latest ? Number(latest.threeVsThreeVictories || 0) + Number(latest.soloVictories || 0) + Number(latest.duoVictories || 0) : 0;
   els.winsTotal.textContent = formatNumber(wins);
@@ -323,11 +377,93 @@ function render() {
   els.lastSync.textContent = latest ? new Date(latest.capturedAt).toLocaleString(state.language === "ru" ? "ru-RU" : "en-US", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-";
 
   renderCoach(latest, todayDelta, todayChanges, losses);
+  renderGoal(latest, todayDelta);
+  renderCalendar();
+  renderProfileStats(latest);
   renderChanges(recentChanges);
   renderBrawlers(latest);
   renderMaps();
   renderHistory();
   renderSnapshots();
+}
+
+function suggestedGoal(latest) {
+  if (!latest) return 1000;
+  return Math.ceil((Number(latest.trophies || 0) + 1) / 1000) * 1000;
+}
+
+function renderGoal(latest, todayDelta) {
+  if (!latest) {
+    els.goalPanel.innerHTML = `<div class="empty">${t("noSnapshots")}</div>`;
+    return;
+  }
+  const target = Number(state.trophyGoal || suggestedGoal(latest));
+  const current = Number(latest.trophies || 0);
+  const remaining = Math.max(0, target - current);
+  const progress = Math.max(0, Math.min(100, Math.round((current / Math.max(target, 1)) * 100)));
+  const days = todayDelta > 0 && remaining > 0 ? Math.ceil(remaining / todayDelta) : null;
+  els.goalPanel.innerHTML = `
+    <div class="goal-topline">
+      <strong>${formatNumber(current)} / ${formatNumber(target)}</strong>
+      <span>${progress}% ${t("progress")}</span>
+    </div>
+    <div class="goal-bar"><i style="width:${progress}%"></i></div>
+    <div class="goal-stats">
+      <span>${t("remaining")}: <b>${formatNumber(remaining)}</b></span>
+      <span>${t("pace")}: <b>${todayDelta > 0 ? `+${todayDelta}` : "0"}</b></span>
+      <span>${days ? `${days}d` : "-"}</span>
+    </div>
+  `;
+}
+
+function historyRows() {
+  const byDay = new Map();
+  state.snapshots.forEach((snapshot) => {
+    const key = dayKey(snapshotDate(snapshot));
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push(snapshot);
+  });
+  return Array.from(byDay.entries()).slice(-30).map(([day, snapshots]) => ({
+    day,
+    delta: Number(snapshots.at(-1)?.trophies || 0) - Number(snapshots[0]?.trophies || 0)
+  }));
+}
+
+function renderCalendar() {
+  const rows = historyRows().slice(-30);
+  if (!rows.length) {
+    els.calendarGrid.innerHTML = `<div class="empty">${t("noSnapshots")}</div>`;
+    return;
+  }
+  els.calendarGrid.innerHTML = rows.map((row) => `
+    <div class="calendar-cell ${deltaClass(row.delta)}" title="${row.day}: ${formatDelta(row.delta)}">
+      <span>${row.day.slice(8)}</span>
+      <b>${formatDelta(row.delta)}</b>
+    </div>
+  `).join("");
+}
+
+function renderProfileStats(latest) {
+  if (!latest) {
+    els.profileStats.innerHTML = `<div class="empty">${t("noSnapshots")}</div>`;
+    return;
+  }
+  const rows = [
+    [t("currentTrophies"), formatNumber(latest.trophies)],
+    [t("best"), formatNumber(latest.highestTrophies)],
+    [t("level"), formatNumber(latest.expLevel)],
+    [t("ranked"), latest.rankedPoints ? formatNumber(latest.rankedPoints) : latest.ranked || "-"],
+    ["3v3", formatNumber(latest.threeVsThreeVictories)],
+    ["Solo", formatNumber(latest.soloVictories)],
+    ["Duo", formatNumber(latest.duoVictories)],
+    [t("winStreak"), latest.highestWinStreak || "-"]
+  ];
+  els.profileStats.innerHTML = rows.map(([title, value]) => `
+    <div class="profile-stat">
+      <span>${title}</span>
+      <strong>${value}</strong>
+    </div>
+  `).join("");
 }
 
 function renderCoach(latest, todayDelta, changes, losses) {
@@ -445,22 +581,15 @@ function renderMapList(container, maps, kind) {
 }
 
 function renderHistory() {
-  const byDay = new Map();
-  state.snapshots.forEach((snapshot) => {
-    const key = dayKey(snapshotDate(snapshot));
-    if (!byDay.has(key)) byDay.set(key, []);
-    byDay.get(key).push(snapshot);
-  });
-  const rows = Array.from(byDay.entries()).slice(-14).map(([day, snapshots]) => ({
-    day,
-    delta: Number(snapshots.at(-1)?.trophies || 0) - Number(snapshots[0]?.trophies || 0)
-  }));
+  const rows = historyRows().slice(-14);
   if (!rows.length) {
-    els.historyChart.innerHTML = `<div class="empty">${t("noSnapshots")}</div>`;
+    const empty = `<div class="empty">${t("noSnapshots")}</div>`;
+    els.historyChart.innerHTML = empty;
+    els.homeHistoryChart.innerHTML = empty;
     return;
   }
   const maxAbs = Math.max(1, ...rows.map((row) => Math.abs(row.delta)));
-  els.historyChart.innerHTML = rows.map((row) => {
+  const html = rows.map((row) => {
     const height = Math.max(8, Math.round(Math.abs(row.delta) / maxAbs * 150));
     const label = row.day.slice(5).replace("-", ".");
     return `
@@ -471,6 +600,8 @@ function renderHistory() {
       </div>
     `;
   }).join("");
+  els.historyChart.innerHTML = html;
+  els.homeHistoryChart.innerHTML = html;
 }
 
 function renderSnapshots() {
@@ -510,7 +641,8 @@ async function fetchProfile(tag) {
     duoVictories: Number(player.duoVictories || 0),
     ranked: player.ranked,
     rankedPoints: player.rankedPoints,
-    highestWinStreak: player.highestWinStreak,
+      highestWinStreak: player.highestWinStreak,
+      clubName: player.club?.name || "",
     brawlers: (player.brawlers || []).map((brawler) => ({
       id: brawler.id,
       name: brawler.name || "Brawler",
@@ -604,12 +736,36 @@ function bindEvents() {
   });
 
   els.brawlerSort.addEventListener("change", render);
+  els.goalInput.addEventListener("change", () => {
+    const value = Number(els.goalInput.value || 0);
+    state.trophyGoal = value > 0 ? value : null;
+    saveState();
+    render();
+  });
+
+  els.suggestGoalButton.addEventListener("click", () => {
+    state.trophyGoal = suggestedGoal(latestSnapshot());
+    saveState();
+    render();
+  });
   els.clearButton.addEventListener("click", () => {
+    clearSnapshots();
+  });
+
+  els.settingsClearButton.addEventListener("click", () => {
+    clearSnapshots();
+  });
+
+  els.manualInstallButton.addEventListener("click", () => {
+    setStatus("", t("installHint"));
+  });
+
+  function clearSnapshots() {
     if (!confirm(t("clearConfirm"))) return;
     state.snapshots = [];
     saveState();
     render();
-  });
+  }
 
   document.addEventListener("click", (event) => {
     const card = event.target.closest(".map-card");
