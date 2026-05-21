@@ -28,3 +28,21 @@ iPhone simulator or physical iPhone.
 
 The app uses public/tokenless Brawl Stars data sources where available. Battle
 logs and map data depend on unofficial sources, so availability can change.
+
+## Local Python Dashboard
+
+The original local FastAPI dashboard is included in:
+
+```text
+server/
+```
+
+Run it with:
+
+```bash
+cd server
+python3 -m uvicorn app:app --reload --host 127.0.0.1 --port 8765
+```
+
+It stores local snapshots in `server/data/tracker.sqlite3`; that database is
+created at runtime and is intentionally not committed.

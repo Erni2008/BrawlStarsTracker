@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__/
+server/data/
+*.sqlite3
+*.pyc

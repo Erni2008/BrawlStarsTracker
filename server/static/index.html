@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brawl Trophy Tracker</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Brawl Stars</p>
+          <h1>Трекер кубков</h1>
+        </div>
+        <div class="actions">
+          <input id="dateInput" type="date" />
+          <button id="syncButton" class="primary">Обновить</button>
+        </div>
+      </section>
+
+      <section id="setupPanel" class="setup hidden">
+        <div>
+          <h2>Подключение</h2>
+          <p>Укажи тег игрока. Трекер берёт публичный профиль через BSInfo API и сам копит историю.</p>
+        </div>
+        <form id="setupForm" class="setup-form">
+          <label>
+            <span>Player tag</span>
+            <input id="playerTagInput" name="playerTag" placeholder="#2PP" autocomplete="off" required />
+          </label>
+          <label>
+            <span>Интервал, минут</span>
+            <input id="intervalInput" name="interval" type="number" min="2" max="120" value="10" />
+          </label>
+          <button class="primary" type="submit">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="status-line">
+        <span id="statusDot" class="dot"></span>
+        <span id="statusText">Загрузка...</span>
+      </section>
+
+      <section class="metrics">
+        <article class="metric hero-metric">
+          <span>Сегодня по снапшотам</span>
+          <strong id="snapshotDelta">0</strong>
+          <small>Разница между первым и последним замером дня</small>
+        </article>
+        <article class="metric">
+          <span>Дельта бравлеров</span>
+          <strong id="battleDelta">0</strong>
+          <small>Сколько бравлеров изменилось за день</small>
+        </article>
+        <article class="metric">
+          <span>Текущие кубки</span>
+          <strong id="currentTrophies">-</strong>
+          <small id="playerName">Нет данных</small>
+        </article>
+        <article class="metric">
+          <span>Баланс бравлеров</span>
+          <strong id="battleCount">0</strong>
+          <small id="battleSplit">0 выросло / 0 упало</small>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel chart-panel">
+          <div class="panel-head">
+            <h2>История по дням</h2>
+            <span>последние 14 дней</span>
+          </div>
+          <div id="historyChart" class="chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Бравлеры сегодня</h2>
+            <span>по снимкам</span>
+          </div>
+          <div id="brawlerStats" class="list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Профиль</h2>
+            <span>последний снимок</span>
+          </div>
+          <div id="modeStats" class="list"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Текущие бравлеры</h2>
+            <span>профиль</span>
+          </div>
+          <div id="brawlerTable" class="brawler-table"></div>
+        </article>
+      </section>
+
+      <section class="panel full">
+        <div class="panel-head">
+          <h2>Последние изменения</h2>
+          <span id="battleUpdated">-</span>
+        </div>
+        <div id="battleList" class="battle-list"></div>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
